@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Production build
+build/
+
+# Package manager files
+package-lock.json
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
