@@ -71,3 +71,109 @@ body {
   font-size: 15px;
   font-weight: 500;
 }
+
+/* Pass form styles */
+.pass-form {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.pass-form .form-group {
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.pass-form input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.pass-form input:focus {
+  outline: none;
+  border-color: #008a38;
+  box-shadow: 0 0 5px rgba(0, 138, 56, 0.3);
+}
+
+.pass-form button {
+  background: #008a38;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.pass-form button:hover:not(:disabled) {
+  background: #006c2a;
+}
+
+.pass-form button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Customer autocomplete styles */
+.customer-input-group {
+  position: relative;
+}
+
+.customer-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.suggestion-item {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.suggestion-item:hover {
+  background-color: #f5f5f5;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+/* Passes table styles */
+.passes-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.passes-table th,
+.passes-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.passes-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #555;
+}
+
+.passes-table tr:hover {
+  background-color: #f5f5f5;
+}
