@@ -1,0 +1,20 @@
+{
+  "name": "eden-passes-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["coworking", "passes", "management", "api"],
+  "author": "Eden Coworking",
+  "license": "ISC",
+  "description": "Backend API for Eden Coworking Passes Management System",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7"
+  }
+}

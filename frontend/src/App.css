@@ -1,0 +1,79 @@
+/* Global styles for Eden Coworking Passes Management */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f8f9fa;
+  color: #333;
+  line-height: 1.6;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  background: #f8f9fa;
+  min-height: calc(100vh - 80px);
+}
+
+/* Eden Coworking Brand Colors */
+:root {
+  --eden-green: #4a7c59;
+  --eden-dark-green: #2d5016;
+  --eden-light-green: #6fa373;
+  --eden-accent: #8bc34a;
+  --eden-gray: #6c757d;
+  --eden-light-gray: #f8f9fa;
+  --eden-border: #e9ecef;
+}
+
+/* Utility classes */
+.text-center {
+  text-align: center;
+}
+
+.text-primary {
+  color: var(--eden-green);
+}
+
+.text-secondary {
+  color: var(--eden-gray);
+}
+
+.bg-primary {
+  background-color: var(--eden-green);
+}
+
+.bg-light {
+  background-color: var(--eden-light-gray);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main-content {
+    min-height: calc(100vh - 120px);
+  }
+}
+
+/* Focus styles for accessibility */
+*:focus {
+  outline: 2px solid var(--eden-green);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+* {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
