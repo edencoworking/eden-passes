@@ -1,9 +1,13 @@
-// Content for Pass.js
+// Content of models/Pass.js
+
 class Pass {
-    constructor() {
-        // Initialization code here
+    constructor(id, customerId, details) {
+        this.id = id;
+        this.customerId = customerId;
+        this.details = details;
     }
-    // Methods for Pass
+
+    // Additional methods
 }
 
 module.exports = Pass;
