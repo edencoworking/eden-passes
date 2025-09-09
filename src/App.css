@@ -71,3 +71,60 @@ body {
   font-size: 15px;
   font-weight: 500;
 }
+
+.passes-list-section {
+  margin-top: 32px;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+}
+
+.loading-message,
+.no-passes-message {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 20px;
+}
+
+.passes-table-container {
+  overflow-x: auto;
+}
+
+.passes-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  background: white;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.passes-table th,
+.passes-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.passes-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.passes-table td {
+  font-size: 14px;
+  color: #555;
+}
+
+.passes-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.passes-table tbody tr:last-child td {
+  border-bottom: none;
+}
