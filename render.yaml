@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: eden-passes-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: eden-passes-data
+      mountPath: /opt/render/project/data
+      sizeGB: 1
