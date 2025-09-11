@@ -2,42 +2,41 @@ const express = require('express');
 const router = express.Router();
 const Pass = require('../models/Pass');
 const Customer = require('../models/Customer');
+const { validate, schemas } = require('../middlewares/validate');
+const logger = require('../middlewares/logger');
 
 // POST /api/passes
-router.post('/', async (req, res) => {
-  const { type, startDate, endDate, date, customerId, customerName } = req.body;
-
-  // Validate type
-  if (!type) {
-    return res.status(400).json({ error: "Pass 'type' is required." });
-  }
-
-  // Determine dates
-  let passStartDate = startDate;
-  let passEndDate = endDate;
-  if (date) {
-    passStartDate = date;
-    passEndDate = date;
-  }
-
-  if (!passStartDate) {
-    return res.status(400).json({ error: "A date is required (either 'date' or 'startDate')." });
-  }
-
-  // Find or create customer
-  let customer;
+router.post('/', validate(schemas.passCreate), async (req, res, next) => {
   try {
+    const { type, startDate, endDate, date, customerId, customerName } = req.body;
+
+    // Determine dates - validation middleware ensures either date or startDate exists
+    let passStartDate = startDate || date;
+    let passEndDate = endDate || date;
+
+    // Find or create customer
+    let customer;
     if (customerId) {
       customer = await Customer.findById(customerId);
-      if (!customer) return res.status(404).json({ error: 'Customer not found.' });
-    } else if (customerName) {
+      if (!customer) {
+        const error = new Error('Customer not found');
+        error.status = 404;
+        return next(error);
+      }
+    } else {
+      // customerName is provided (validated by middleware)
       customer = await Customer.findOne({ name: customerName });
       if (!customer) {
         customer = new Customer({ name: customerName });
         await customer.save();
+        
+        logger.info({
+          event: 'customer_auto_created',
+          customerId: customer._id,
+          name: customer.name,
+          requestId: req.id
+        }, `Auto-created customer: ${customer.name}`);
       }
-    } else {
-      return res.status(400).json({ error: 'Customer info required (customerId or customerName).' });
     }
 
     // Create and save pass
@@ -47,21 +46,47 @@ router.post('/', async (req, res) => {
       endDate: passEndDate,
       customer: customer._id,
     });
+    
     await pass.save();
-    res.status(201).json(pass);
-
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to create pass.', details: err?.message || err });
+    
+    // Return populated pass for convenience
+    const populatedPass = await Pass.findById(pass._id)
+      .populate('customer', 'name email')
+      .lean()
+      .exec();
+    
+    logger.info({
+      event: 'pass_created',
+      passId: pass._id,
+      type,
+      customerId: customer._id,
+      customerName: customer.name,
+      requestId: req.id
+    }, `Pass created: ${type} for ${customer.name}`);
+    
+    res.status(201).json(populatedPass);
+  } catch (error) {
+    next(error);
   }
 });
 
 // GET /api/passes
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
-    const passes = await Pass.find().populate('customer').exec();
+    const passes = await Pass.find()
+      .populate('customer', 'name email')
+      .lean()
+      .exec();
+    
+    logger.info({
+      event: 'passes_fetched',
+      count: passes.length,
+      requestId: req.id
+    }, `Fetched ${passes.length} passes`);
+    
     res.json(passes);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch passes.', details: err?.message || err });
+  } catch (error) {
+    next(error);
   }
 });
 
