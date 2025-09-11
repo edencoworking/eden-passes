@@ -7,12 +7,12 @@ const passSchema = new mongoose.Schema({
   customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true }
 }, { timestamps: true });
 
-// Ensure endDate defaults to startDate if not provided
 passSchema.pre('save', function(next) {
-  if (!this.endDate) {
-    this.endDate = this.startDate;
-  }
+  if (!this.endDate) this.endDate = this.startDate;
   next();
 });
+
+passSchema.index({ customer: 1, startDate: -1 });
+passSchema.index({ type: 1 });
 
 module.exports = mongoose.model('Pass', passSchema);
