@@ -1,129 +1,43 @@
-# Eden Passes (Backend & Frontend)
+# Eden Passes (Frontend Only)
 
-A combined minimal React frontend and enhanced Express/MongoDB backend for managing coworking passes and customers.
+As of version 1.2.0 the previous Express + MongoDB backend was removed. This repository now contains only the React frontend (and any lightweight serverless/Vercel-style endpoints that may live under `api/`). All legacy backend functionality (health/readiness endpoints, Mongo models, rate limiting, Joi validation, structured logging, graceful shutdown) has been retired.
 
-## Features Added
+## What Changed in 1.2.0
+- Removed Express server entrypoint (`app.js`).
+- Deleted backend directories: `routes/`, `models/`, `middlewares/`, `utils/` (Mongo state helper).
+- Pruned backend-only dependencies (express, mongoose, joi, helmet, dotenv, pino, express-rate-limit, cors, pino-http, etc.).
+- Bumped version to 1.2.0.
+- Simplified documentation to reflect a pure frontend application.
 
-- Structured logging (pino) with request correlation IDs
-- Centralized error handling with standardized JSON format
-- Input validation using Joi
-- Security hardening (helmet) + basic rate limiting
-- Health (`/health`) and readiness (`/ready`) endpoints with MongoDB state
-- Graceful shutdown
-- Indexed MongoDB schemas for performance
-- Lean queries and selective population
-- Environment-driven configuration
-- Consistent response envelope
-
-## API Response Conventions
-
-Success:
-```json
-{
-  "success": true,
-  "data": {...},
-  "requestId": "uuid"
-}
-```
-
-Error:
-```json
-{
-  "success": false,
-  "code": "ERROR_CODE",
-  "message": "Human readable message",
-  "requestId": "uuid"
-}
-```
-
-## Endpoints
-
-### Health
-GET /health  
-Returns service status, uptime, version, Mongo state.
-
-### Readiness
-GET /ready  
-200 if Mongo connected; 503 otherwise.
-
-### Customers
-GET /api/customers?search=term  
-Returns up to 10 matching customers.
-
-POST /api/customers
-```json
-{
-  "name": "Alice",
-  "email": "alice@example.com"
-}
-```
-409 if name already exists.
-
-### Passes
-POST /api/passes
-Provide either:
-- Single day: `{"type":"day","date":"2025-09-01","customerId":"..."}`
-- Range: `{"type":"week","startDate":"2025-09-01","endDate":"2025-09-05","customerName":"Bob"}`
-
-Exactly one of `customerId` or `customerName` required.
-
-GET /api/passes  
-Lists up to 100 most recent passes (descending by startDate).
-
-## Environment Variables
-
-See `.env.example`.
-
-Key | Description
-----|------------
-PORT | Server port
-MONGO_URI | Mongo connection string
-CORS_ORIGIN | Comma-separated whitelist or `*`
-RATE_LIMIT_WINDOW_MS | Rate limiter window (ms)
-RATE_LIMIT_MAX | Max requests per window per IP
-LOG_LEVEL | pino log level (info, debug, warn, error)
-SERVICE_VERSION | Displayed in /health
-
-## Development
-
-Install:
+## Getting Started
+Install dependencies:
 ```bash
 npm install
 ```
-
-Run backend:
+Run the development server:
 ```bash
-npm run dev
+npm start
+```
+Build for production:
+```bash
+npm run build
+```
+Run tests:
+```bash
+npm test
 ```
 
-(React frontend commands remain unchanged if present.)
+## Environment Variables
+Backend-specific variables (PORT, MONGO_URI, RATE_LIMIT_*, LOG_LEVEL, etc.) are no longer used. If the frontend needs to call an external API, add variables prefixed with `REACT_APP_` (e.g. `REACT_APP_API_BASE`) in a local `.env` that you do not commit.
 
-## Logging
+## Future Integration
+// TODO: Integrate external API layer or SDK for passes & customers.
+// TODO: Replace any former direct backend assumptions with fetch/GraphQL calls.
 
-Pretty logging in non-production; JSON in production. Each line includes `requestId`.
+## Changelog (Excerpt)
+| Version | Date | Notes |
+|---------|------|-------|
+| 1.2.0 | 2025-09-11 | Backend removed; repository is frontend-only. |
+| 1.1.x | 2025 | Full-stack (React + Express/Mongo) implementation (now retired). |
 
-## Error Codes (Sample)
-
-Code | Meaning
------|--------
-VALIDATION_ERROR | Joi validation failure
-CUSTOMER_EXISTS | Unique name conflict
-CUSTOMER_NOT_FOUND | Customer id not found
-RATE_LIMIT_EXCEEDED | Rate limiter triggered
-NOT_FOUND | 404 route
-INTERNAL_ERROR | Unhandled server error
-
-## Mongo Indexes
-
-Collection | Index
------------|------
-customers | `{ email: 1 } (sparse)`
-passes | `{ customer:1, startDate:-1 }`, `{ type:1 }`
-
-## Graceful Shutdown
-
-On SIGINT/SIGTERM: stop accepting new connections, close HTTP server, then close Mongo.
-
----
-
-Adjust or extend this backend as business rules evolve.
+Old backend logic can still be examined in Git history prior to tag v1.2.0.
