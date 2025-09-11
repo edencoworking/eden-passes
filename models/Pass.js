@@ -1,13 +1,18 @@
-// Content of models/Pass.js
+const mongoose = require('mongoose');
 
-class Pass {
-    constructor(id, customerId, details) {
-        this.id = id;
-        this.customerId = customerId;
-        this.details = details;
-    }
+const passSchema = new mongoose.Schema({
+  type: { type: String, required: true, trim: true },
+  startDate: { type: Date, required: true },
+  endDate: { type: Date },
+  customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true }
+}, { timestamps: true });
 
-    // Additional methods
-}
+// Ensure endDate defaults to startDate if not provided
+passSchema.pre('save', function(next) {
+  if (!this.endDate) {
+    this.endDate = this.startDate;
+  }
+  next();
+});
 
-module.exports = Pass;
+module.exports = mongoose.model('Pass', passSchema);
