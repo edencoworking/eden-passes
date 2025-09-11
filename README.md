@@ -1,129 +1,56 @@
-# Eden Passes (Backend & Frontend)
+# Eden Passes
 
-A combined minimal React frontend and enhanced Express/MongoDB backend for managing coworking passes and customers.
+A minimal React frontend for managing coworking passes and customers with an in-memory mock API.
 
-## Features Added
+## Features
 
-- Structured logging (pino) with request correlation IDs
-- Centralized error handling with standardized JSON format
-- Input validation using Joi
-- Security hardening (helmet) + basic rate limiting
-- Health (`/health`) and readiness (`/ready`) endpoints with MongoDB state
-- Graceful shutdown
-- Indexed MongoDB schemas for performance
-- Lean queries and selective population
-- Environment-driven configuration
-- Consistent response envelope
+- React-based user interface for pass and customer management
+- In-memory mock API endpoints for development (api/ directory)
+- Responsive design and modern React patterns
+- Vercel-ready deployment configuration
 
-## API Response Conventions
+## API Endpoints
 
-Success:
-```json
-{
-  "success": true,
-  "data": {...},
-  "requestId": "uuid"
-}
-```
-
-Error:
-```json
-{
-  "success": false,
-  "code": "ERROR_CODE",
-  "message": "Human readable message",
-  "requestId": "uuid"
-}
-```
-
-## Endpoints
-
-### Health
-GET /health  
-Returns service status, uptime, version, Mongo state.
-
-### Readiness
-GET /ready  
-200 if Mongo connected; 503 otherwise.
+The application uses serverless API routes located in the `api/` directory:
 
 ### Customers
-GET /api/customers?search=term  
-Returns up to 10 matching customers.
-
-POST /api/customers
-```json
-{
-  "name": "Alice",
-  "email": "alice@example.com"
-}
-```
-409 if name already exists.
+- `GET /api/customers?search=term` - Search customers
+- `POST /api/customers` - Create new customer
 
 ### Passes
-POST /api/passes
-Provide either:
-- Single day: `{"type":"day","date":"2025-09-01","customerId":"..."}`
-- Range: `{"type":"week","startDate":"2025-09-01","endDate":"2025-09-05","customerName":"Bob"}`
+- `GET /api/passes` - List all passes with customer information
+- `POST /api/passes` - Create new pass
 
-Exactly one of `customerId` or `customerName` required.
+## Architecture Note
 
-GET /api/passes  
-Lists up to 100 most recent passes (descending by startDate).
-
-## Environment Variables
-
-See `.env.example`.
-
-Key | Description
-----|------------
-PORT | Server port
-MONGO_URI | Mongo connection string
-CORS_ORIGIN | Comma-separated whitelist or `*`
-RATE_LIMIT_WINDOW_MS | Rate limiter window (ms)
-RATE_LIMIT_MAX | Max requests per window per IP
-LOG_LEVEL | pino log level (info, debug, warn, error)
-SERVICE_VERSION | Displayed in /health
+**Version 1.2.0**: The legacy Express/MongoDB backend was removed in favor of a simplified in-memory mock API. This change provides a cleaner development experience and easier deployment to serverless platforms like Vercel.
 
 ## Development
 
-Install:
+Install dependencies:
 ```bash
 npm install
 ```
 
-Run backend:
+Start the React development server:
 ```bash
-npm run dev
+npm start
 ```
 
-(React frontend commands remain unchanged if present.)
+Build for production:
+```bash
+npm run build
+```
 
-## Logging
+Run tests:
+```bash
+npm test
+```
 
-Pretty logging in non-production; JSON in production. Each line includes `requestId`.
+## Deployment
 
-## Error Codes (Sample)
-
-Code | Meaning
------|--------
-VALIDATION_ERROR | Joi validation failure
-CUSTOMER_EXISTS | Unique name conflict
-CUSTOMER_NOT_FOUND | Customer id not found
-RATE_LIMIT_EXCEEDED | Rate limiter triggered
-NOT_FOUND | 404 route
-INTERNAL_ERROR | Unhandled server error
-
-## Mongo Indexes
-
-Collection | Index
------------|------
-customers | `{ email: 1 } (sparse)`
-passes | `{ customer:1, startDate:-1 }`, `{ type:1 }`
-
-## Graceful Shutdown
-
-On SIGINT/SIGTERM: stop accepting new connections, close HTTP server, then close Mongo.
+This application is configured for deployment on Vercel with serverless API routes. The `api/` directory contains the backend endpoints that will be automatically deployed as serverless functions.
 
 ---
 
-Adjust or extend this backend as business rules evolve.
+For production use, consider implementing a proper database backend and authentication system.
