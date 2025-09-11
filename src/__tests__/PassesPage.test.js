@@ -1,14 +1,14 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PassesPage from '../pages/PassesPage';
 
-// Mock axios
-jest.mock('axios', () => ({
-  get: jest.fn(),
-  post: jest.fn()
+// Mock the mock API module
+jest.mock('../api/mock', () => ({
+  searchCustomers: jest.fn(),
+  listPasses: jest.fn(),
+  createPass: jest.fn()
 }));
 
-import axios from 'axios';
-const mockedAxios = axios;
+import { searchCustomers, listPasses, createPass } from '../api/mock';
 
 // Mock data
 const mockCustomers = [
@@ -21,7 +21,6 @@ const mockPasses = [
     id: '1', 
     type: 'weekly', 
     date: '2024-01-15', 
-    customerId: '1',
     customer: { id: '1', name: 'John Doe' },
     createdAt: new Date().toISOString()
   }
@@ -29,7 +28,8 @@ const mockPasses = [
 
 describe('PassesPage', () => {
   beforeEach(() => {
-    mockedAxios.get.mockResolvedValue({ data: mockPasses });
+    listPasses.mockReturnValue(mockPasses);
+    searchCustomers.mockReturnValue([]);
   });
 
   afterEach(() => {
@@ -39,8 +39,8 @@ describe('PassesPage', () => {
   test('renders pass creation form with customer field', async () => {
     render(<PassesPage />);
     
-    expect(screen.getByPlaceholderText('Pass Type')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Customer Name')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Pass Type*' })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Customer Name*' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Pass' })).toBeInTheDocument();
   });
 
@@ -54,16 +54,15 @@ describe('PassesPage', () => {
   });
 
   test('shows customer suggestions when typing', async () => {
-    mockedAxios.get.mockResolvedValueOnce({ data: mockPasses })
-                   .mockResolvedValueOnce({ data: mockCustomers });
+    searchCustomers.mockReturnValue(mockCustomers);
 
     render(<PassesPage />);
     
-    const customerInput = screen.getByPlaceholderText('Customer Name');
+    const customerInput = screen.getByRole('textbox', { name: 'Customer Name*' });
     fireEvent.change(customerInput, { target: { value: 'Jo' } });
     
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/customers?name_like=Jo');
+      expect(searchCustomers).toHaveBeenCalledWith('Jo');
     });
   });
 });
