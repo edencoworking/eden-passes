@@ -1,129 +1,69 @@
-# Eden Passes (Backend & Frontend)
+# Eden Passes
 
-A combined minimal React frontend and enhanced Express/MongoDB backend for managing coworking passes and customers.
+A React frontend application for managing coworking passes and customers, designed for demonstration purposes with lightweight in-memory API handlers.
 
-## Features Added
+## Features
 
-- Structured logging (pino) with request correlation IDs
-- Centralized error handling with standardized JSON format
-- Input validation using Joi
-- Security hardening (helmet) + basic rate limiting
-- Health (`/health`) and readiness (`/ready`) endpoints with MongoDB state
-- Graceful shutdown
-- Indexed MongoDB schemas for performance
-- Lean queries and selective population
-- Environment-driven configuration
-- Consistent response envelope
+- Clean React frontend built with Create React App
+- In-memory API handlers for passes and customers management
+- Simple customer search and pass creation functionality
+- Responsive design for coworking pass management
 
-## API Response Conventions
+## Backend Cleanup (v1.2.0)
 
-Success:
-```json
-{
-  "success": true,
-  "data": {...},
-  "requestId": "uuid"
-}
-```
+**Major architectural change**: Removed legacy Express/MongoDB backend implementation in favor of lightweight in-memory API handlers optimized for demo environments.
 
-Error:
-```json
-{
-  "success": false,
-  "code": "ERROR_CODE",
-  "message": "Human readable message",
-  "requestId": "uuid"
-}
-```
+**What was removed:**
+- Express.js server with MongoDB integration
+- Complex middleware stack (logging, validation, rate limiting, security)
+- Mongoose models and schemas
+- Database connection management
+- Heavy dependencies: `express`, `mongoose`, `joi`, `helmet`, `express-rate-limit`, `cors`, `dotenv`, `pino`, `pino-http`, `nodemon`, `pino-pretty`
 
-## Endpoints
+**Current implementation:**
+- Lightweight Vercel/Next.js API routes in `api/` directory
+- In-memory data storage using JavaScript arrays
+- Simple CORS handling and basic validation
+- Minimal dependencies focused on frontend needs
 
-### Health
-GET /health  
-Returns service status, uptime, version, Mongo state.
+This change simplifies deployment, reduces complexity, and provides a fast demo experience while maintaining all user-facing functionality.
 
-### Readiness
-GET /ready  
-200 if Mongo connected; 503 otherwise.
+## API Endpoints
 
 ### Customers
-GET /api/customers?search=term  
-Returns up to 10 matching customers.
+- `GET /api/customers?search=term` - Search customers by name
+- `POST /api/customers` - Create new customer with `{"name": "Customer Name"}`
 
-POST /api/customers
-```json
-{
-  "name": "Alice",
-  "email": "alice@example.com"
-}
-```
-409 if name already exists.
-
-### Passes
-POST /api/passes
-Provide either:
-- Single day: `{"type":"day","date":"2025-09-01","customerId":"..."}`
-- Range: `{"type":"week","startDate":"2025-09-01","endDate":"2025-09-05","customerName":"Bob"}`
-
-Exactly one of `customerId` or `customerName` required.
-
-GET /api/passes  
-Lists up to 100 most recent passes (descending by startDate).
-
-## Environment Variables
-
-See `.env.example`.
-
-Key | Description
-----|------------
-PORT | Server port
-MONGO_URI | Mongo connection string
-CORS_ORIGIN | Comma-separated whitelist or `*`
-RATE_LIMIT_WINDOW_MS | Rate limiter window (ms)
-RATE_LIMIT_MAX | Max requests per window per IP
-LOG_LEVEL | pino log level (info, debug, warn, error)
-SERVICE_VERSION | Displayed in /health
+### Passes  
+- `GET /api/passes` - List all passes with customer information
+- `POST /api/passes` - Create new pass with `{"type": "daily|weekly|monthly", "date": "YYYY-MM-DD", "customerId": "id"}` or `{"type": "...", "date": "...", "customerName": "Name"}`
 
 ## Development
 
-Install:
+Install dependencies:
 ```bash
 npm install
 ```
 
-Run backend:
+Start the development server:
 ```bash
-npm run dev
+npm start
 ```
 
-(React frontend commands remain unchanged if present.)
+Build for production:
+```bash
+npm run build
+```
 
-## Logging
+Run tests:
+```bash
+npm test
+```
 
-Pretty logging in non-production; JSON in production. Each line includes `requestId`.
+## Deployment
 
-## Error Codes (Sample)
-
-Code | Meaning
------|--------
-VALIDATION_ERROR | Joi validation failure
-CUSTOMER_EXISTS | Unique name conflict
-CUSTOMER_NOT_FOUND | Customer id not found
-RATE_LIMIT_EXCEEDED | Rate limiter triggered
-NOT_FOUND | 404 route
-INTERNAL_ERROR | Unhandled server error
-
-## Mongo Indexes
-
-Collection | Index
------------|------
-customers | `{ email: 1 } (sparse)`
-passes | `{ customer:1, startDate:-1 }`, `{ type:1 }`
-
-## Graceful Shutdown
-
-On SIGINT/SIGTERM: stop accepting new connections, close HTTP server, then close Mongo.
+This application is optimized for deployment on Vercel or similar platforms that support serverless API routes. The `api/` directory contains the backend endpoints, while the React build serves the frontend.
 
 ---
 
-Adjust or extend this backend as business rules evolve.
+The application now focuses on simplicity and ease of deployment while maintaining full functionality for pass and customer management.
