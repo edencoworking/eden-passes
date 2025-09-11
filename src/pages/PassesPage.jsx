@@ -102,7 +102,9 @@ export default function PassesPage() {
         setSubmitted(true);
         setErrors({});
       } catch (err) {
-        setErrors({ api: 'Error creating pass.' });
+        // Show the actual error message from the API
+        const errorMessage = err.response?.data?.error || 'Error creating pass. Please try again.';
+        setErrors({ api: errorMessage });
       }
       setLoading(false);
     }
