@@ -1,16 +1,17 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-// Mock axios to prevent API calls during testing
-jest.mock('axios', () => ({
-  get: jest.fn(() => Promise.resolve({ data: [] })),
-  post: jest.fn(() => Promise.resolve({ data: {} }))
+// Mock the API functions
+jest.mock('./api/mock', () => ({
+  listPasses: jest.fn(() => []),
+  searchCustomers: jest.fn(() => []),
+  createPass: jest.fn()
 }));
 
 test('renders Eden Passes heading', () => {
   render(<App />);
-  const headingElement = screen.getByText(/Eden Passes/i);
-  expect(headingElement).toBeInTheDocument();
+  const headingElements = screen.getAllByText(/Eden Passes/i);
+  expect(headingElements.length).toBeGreaterThan(0);
 });
 
 test('renders Create New Pass section', () => {

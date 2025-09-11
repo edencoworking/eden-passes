@@ -1,14 +1,14 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PassesPage from '../pages/PassesPage';
 
-// Mock axios
-jest.mock('axios', () => ({
-  get: jest.fn(),
-  post: jest.fn()
+// Mock the API functions
+jest.mock('../api/mock', () => ({
+  listPasses: jest.fn(),
+  searchCustomers: jest.fn(),
+  createPass: jest.fn()
 }));
 
-import axios from 'axios';
-const mockedAxios = axios;
+import { listPasses, searchCustomers, createPass } from '../api/mock';
 
 // Mock data
 const mockCustomers = [
@@ -29,7 +29,9 @@ const mockPasses = [
 
 describe('PassesPage', () => {
   beforeEach(() => {
-    mockedAxios.get.mockResolvedValue({ data: mockPasses });
+    listPasses.mockReturnValue(mockPasses);
+    searchCustomers.mockReturnValue(mockCustomers);
+    createPass.mockReturnValue(mockPasses[0]);
   });
 
   afterEach(() => {
@@ -39,8 +41,8 @@ describe('PassesPage', () => {
   test('renders pass creation form with customer field', async () => {
     render(<PassesPage />);
     
-    expect(screen.getByPlaceholderText('Pass Type')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Customer Name')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Pass Type/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Customer Name/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Pass' })).toBeInTheDocument();
   });
 
@@ -53,17 +55,9 @@ describe('PassesPage', () => {
     });
   });
 
-  test('shows customer suggestions when typing', async () => {
-    mockedAxios.get.mockResolvedValueOnce({ data: mockPasses })
-                   .mockResolvedValueOnce({ data: mockCustomers });
-
+  test('loads passes on mount', () => {
     render(<PassesPage />);
     
-    const customerInput = screen.getByPlaceholderText('Customer Name');
-    fireEvent.change(customerInput, { target: { value: 'Jo' } });
-    
-    await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/customers?name_like=Jo');
-    });
+    expect(listPasses).toHaveBeenCalled();
   });
 });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { listPasses, searchCustomers, createPass } from '../api/mock';
 import './Autocomplete.css';
 
 export default function PassesPage() {
@@ -11,13 +11,14 @@ export default function PassesPage() {
   const [form, setForm] = useState({ type: '', startDate: '', endDate: '' });
 
   useEffect(() => {
-    axios.get('/api/passes').then(res => setPasses(res.data));
+    const data = listPasses();
+    setPasses(data);
   }, []);
 
   useEffect(() => {
     if (customerSearch) {
-      axios.get('/api/customers?search=' + encodeURIComponent(customerSearch))
-        .then(res => setCustomerSuggestions(res.data));
+      const data = searchCustomers(customerSearch);
+      setCustomerSuggestions(data);
     } else {
       setCustomerSuggestions([]);
     }
@@ -26,15 +27,21 @@ export default function PassesPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = {
-      ...form,
-      customerId: selectedCustomer ? selectedCustomer._id : undefined,
+      type: form.type,
+      date: form.startDate,
+      customerId: selectedCustomer ? selectedCustomer.id || selectedCustomer._id : undefined,
       customerName: !selectedCustomer ? customerSearch : undefined
     };
-    await axios.post('/api/passes', payload);
-    setForm({ type: '', startDate: '', endDate: '' });
-    setCustomerSearch('');
-    setSelectedCustomer(null);
-    axios.get('/api/passes').then(res => setPasses(res.data));
+    try {
+      createPass(payload);
+      setForm({ type: '', startDate: '', endDate: '' });
+      setCustomerSearch('');
+      setSelectedCustomer(null);
+      const data = listPasses();
+      setPasses(data);
+    } catch (error) {
+      console.error('Error creating pass:', error);
+    }
   };
 
   return (
@@ -70,7 +77,7 @@ export default function PassesPage() {
             <ul className="suggestions">
               {customerSuggestions.map(c => (
                 <li
-                  key={c._id}
+                  key={c.id || c._id}
                   onClick={() => {
                     setSelectedCustomer(c);
                     setCustomerSuggestions([]);
@@ -97,9 +104,9 @@ export default function PassesPage() {
         </thead>
         <tbody>
           {passes.map(pass => (
-            <tr key={pass._id}>
+            <tr key={pass.id || pass._id}>
               <td>{pass.type}</td>
-              <td>{pass.startDate && pass.startDate.slice(0, 10)}</td>
+              <td>{pass.date || (pass.startDate && pass.startDate.slice(0, 10))}</td>
               <td>{pass.endDate && pass.endDate.slice(0, 10)}</td>
               <td>{pass.customer ? pass.customer.name : ''}</td>
             </tr>
