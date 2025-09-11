@@ -1,129 +1,42 @@
-# Eden Passes (Backend & Frontend)
+# Eden Passes
 
-A combined minimal React frontend and enhanced Express/MongoDB backend for managing coworking passes and customers.
+A minimal React frontend with serverless-style API functions for managing coworking passes and customers.
 
-## Features Added
+## Architecture
 
-- Structured logging (pino) with request correlation IDs
-- Centralized error handling with standardized JSON format
-- Input validation using Joi
-- Security hardening (helmet) + basic rate limiting
-- Health (`/health`) and readiness (`/ready`) endpoints with MongoDB state
-- Graceful shutdown
-- Indexed MongoDB schemas for performance
-- Lean queries and selective population
-- Environment-driven configuration
-- Consistent response envelope
+This application uses:
+- **Frontend**: React application built with create-react-app
+- **API**: Serverless-style functions in the `api/` directory using in-memory data storage
+- **No Database**: Simple in-memory arrays for data persistence during runtime
 
-## API Response Conventions
-
-Success:
-```json
-{
-  "success": true,
-  "data": {...},
-  "requestId": "uuid"
-}
-```
-
-Error:
-```json
-{
-  "success": false,
-  "code": "ERROR_CODE",
-  "message": "Human readable message",
-  "requestId": "uuid"
-}
-```
-
-## Endpoints
-
-### Health
-GET /health  
-Returns service status, uptime, version, Mongo state.
-
-### Readiness
-GET /ready  
-200 if Mongo connected; 503 otherwise.
+## API Endpoints
 
 ### Customers
-GET /api/customers?search=term  
-Returns up to 10 matching customers.
+- `GET /api/customers?search=term` - Search customers by name
+- `POST /api/customers` - Create a new customer
 
-POST /api/customers
-```json
-{
-  "name": "Alice",
-  "email": "alice@example.com"
-}
-```
-409 if name already exists.
-
-### Passes
-POST /api/passes
-Provide either:
-- Single day: `{"type":"day","date":"2025-09-01","customerId":"..."}`
-- Range: `{"type":"week","startDate":"2025-09-01","endDate":"2025-09-05","customerName":"Bob"}`
-
-Exactly one of `customerId` or `customerName` required.
-
-GET /api/passes  
-Lists up to 100 most recent passes (descending by startDate).
-
-## Environment Variables
-
-See `.env.example`.
-
-Key | Description
-----|------------
-PORT | Server port
-MONGO_URI | Mongo connection string
-CORS_ORIGIN | Comma-separated whitelist or `*`
-RATE_LIMIT_WINDOW_MS | Rate limiter window (ms)
-RATE_LIMIT_MAX | Max requests per window per IP
-LOG_LEVEL | pino log level (info, debug, warn, error)
-SERVICE_VERSION | Displayed in /health
+### Passes  
+- `GET /api/passes` - Get all passes with customer information
+- `POST /api/passes` - Create a new pass (optionally creating customer if needed)
 
 ## Development
 
-Install:
+Install dependencies:
 ```bash
 npm install
 ```
 
-Run backend:
+Start the React development server:
 ```bash
-npm run dev
+npm start
 ```
 
-(React frontend commands remain unchanged if present.)
+The React app will run on http://localhost:3000 and the API functions are designed to work with serverless platforms like Vercel.
 
-## Logging
+## Deployment
 
-Pretty logging in non-production; JSON in production. Each line includes `requestId`.
+This project is configured for deployment on Vercel, where the `api/` functions will be automatically deployed as serverless functions.
 
-## Error Codes (Sample)
+## Backend Cleanup (v1.2.0)
 
-Code | Meaning
------|--------
-VALIDATION_ERROR | Joi validation failure
-CUSTOMER_EXISTS | Unique name conflict
-CUSTOMER_NOT_FOUND | Customer id not found
-RATE_LIMIT_EXCEEDED | Rate limiter triggered
-NOT_FOUND | 404 route
-INTERNAL_ERROR | Unhandled server error
-
-## Mongo Indexes
-
-Collection | Index
------------|------
-customers | `{ email: 1 } (sparse)`
-passes | `{ customer:1, startDate:-1 }`, `{ type:1 }`
-
-## Graceful Shutdown
-
-On SIGINT/SIGTERM: stop accepting new connections, close HTTP server, then close Mongo.
-
----
-
-Adjust or extend this backend as business rules evolve.
+In version 1.2.0, the deprecated Express/MongoDB backend was removed in favor of the lightweight serverless API implementation. The application now uses simple in-memory data storage and no longer requires database connections or complex backend infrastructure.
