@@ -134,7 +134,6 @@ export default function PassesPage() {
 
   return (
     <div className="App">
-      <h1>Eden Passes</h1>
       <section className="new-pass-section">
         <h2>Create New Pass</h2>
         <form className="new-pass-form" onSubmit={handleSubmit} autoComplete="off" noValidate>
