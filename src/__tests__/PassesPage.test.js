@@ -39,8 +39,8 @@ describe('PassesPage', () => {
   test('renders pass creation form with customer field', async () => {
     render(<PassesPage />);
     
-    expect(screen.getByPlaceholderText('Pass Type')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Customer Name')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Pass Type/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Customer Name/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Pass' })).toBeInTheDocument();
   });
 
@@ -59,11 +59,11 @@ describe('PassesPage', () => {
 
     render(<PassesPage />);
     
-    const customerInput = screen.getByPlaceholderText('Customer Name');
+    const customerInput = screen.getByLabelText(/Customer Name/);
     fireEvent.change(customerInput, { target: { value: 'Jo' } });
     
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/customers?name_like=Jo');
+      expect(mockedAxios.get).toHaveBeenCalledWith('/api/customers?search=Jo');
     });
   });
 });
