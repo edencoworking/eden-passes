@@ -28,7 +28,7 @@ export default function PassesPage() {
     const fetchPasses = async () => {
       try {
         const res = await axios.get('/api/passes');
-        setPasses(res.data.reverse());
+        setPasses(res.data); // No need to reverse since backend sorts by newest first
       } catch (err) {
         console.error('Error fetching passes:', err);
       }
@@ -80,21 +80,13 @@ export default function PassesPage() {
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        // If customerId is set, use it. If not, create customer.
-        let finalCustomerId = customerId;
-        if (!finalCustomerId) {
-          // Attempt to create new customer
-          const customerRes = await axios.post('/api/customers', { name: customer });
-          finalCustomerId = customerRes.data.id || customerRes.data._id;
-        }
-        // Create pass
+        // Create pass directly without creating customer separately
         const res = await axios.post('/api/passes', {
           type: passType,
           date,
-          customerId: finalCustomerId,
           customerName: customer
         });
-        setPasses([res.data, ...passes]);
+        setPasses([res.data, ...passes]); // Prepend new pass without reversing entire list
         setPassType("");
         setDate(new Date().toISOString().split("T")[0]);
         setCustomer("");
@@ -102,7 +94,9 @@ export default function PassesPage() {
         setSubmitted(true);
         setErrors({});
       } catch (err) {
-        setErrors({ api: 'Error creating pass.' });
+        // Show backend error details if available
+        const errorMessage = err.response?.data?.error || err.response?.data?.details || 'Error creating pass.';
+        setErrors({ api: errorMessage });
       }
       setLoading(false);
     }
@@ -116,8 +110,7 @@ export default function PassesPage() {
   };
 
   return (
-    <div className="App">
-      <h1>Eden Passes</h1>
+    <div>
       <section className="new-pass-section">
         <h2>Create New Pass</h2>
         <form className="new-pass-form" onSubmit={handleSubmit} autoComplete="off" noValidate>
@@ -224,8 +217,8 @@ export default function PassesPage() {
               passes.map((pass) => (
                 <tr key={pass.id || pass._id}>
                   <td>{pass.type}</td>
-                  <td>{pass.date}</td>
-                  <td>{pass.customerName ? pass.customerName : (pass.customer?.name || "-")}</td>
+                  <td>{pass.date ? new Date(pass.date).toLocaleDateString() : (pass.startDate ? new Date(pass.startDate).toLocaleDateString() : '-')}</td>
+                  <td>{pass.customer?.name || "-"}</td>
                   <td>{pass.createdAt ? new Date(pass.createdAt).toLocaleString() : '-'}</td>
                 </tr>
               ))

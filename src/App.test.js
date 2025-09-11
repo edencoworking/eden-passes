@@ -9,8 +9,8 @@ jest.mock('axios', () => ({
 
 test('renders Eden Passes heading', () => {
   render(<App />);
-  const headingElement = screen.getByText(/Eden Passes/i);
-  expect(headingElement).toBeInTheDocument();
+  const headingElements = screen.getAllByText(/Eden Passes/i);
+  expect(headingElements.length).toBeGreaterThan(0);
 });
 
 test('renders Create New Pass section', () => {

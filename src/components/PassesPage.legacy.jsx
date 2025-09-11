@@ -1,3 +1,8 @@
+/* 
+ * DEPRECATED: This component is deprecated and replaced by src/pages/PassesPage.jsx
+ * It uses different field expectations (startDate/endDate vs date) and is kept for legacy purposes only.
+ * Please use src/pages/PassesPage.jsx for new development.
+ */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Autocomplete.css';

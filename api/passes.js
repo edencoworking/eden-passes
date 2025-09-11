@@ -1,3 +1,9 @@
+/* 
+ * DEPRECATED: This API endpoint is deprecated and should not be used when Express routes are active.
+ * It provides an in-memory implementation that conflicts with the database-backed routes/passes.js.
+ * Please use the Express routes (/api/passes) in routes/passes.js for all new development.
+ */
+
 // Import data from customers API (in production, this would be database queries)
 import { customers, passes, nextPassId } from './customers.js';
 
