@@ -15,4 +15,8 @@ passSchema.pre('save', function(next) {
   next();
 });
 
+// Performance indexes
+passSchema.index({ customer: 1, startDate: -1 }); // Optimize customer pass queries
+passSchema.index({ type: 1 }); // Optimize queries by pass type
+
 module.exports = mongoose.model('Pass', passSchema);
