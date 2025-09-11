@@ -12,36 +12,35 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: "Pass 'type' is required." });
   }
 
-  // Handle date logic
+  // Determine dates
   let passStartDate = startDate;
   let passEndDate = endDate;
-
   if (date) {
     passStartDate = date;
     passEndDate = date;
   }
 
-  if (!passStartDate && !passEndDate) {
-    return res.status(400).json({ error: "At least one date ('date', 'startDate', or 'endDate') is required." });
+  if (!passStartDate) {
+    return res.status(400).json({ error: "A date is required (either 'date' or 'startDate')." });
   }
 
-  // Customer lookup/creation logic
+  // Find or create customer
   let customer;
-  if (customerId) {
-    customer = await Customer.findById(customerId);
-    if (!customer) return res.status(404).json({ error: 'Customer not found.' });
-  } else if (customerName) {
-    customer = await Customer.findOne({ name: customerName });
-    if (!customer) {
-      customer = new Customer({ name: customerName });
-      await customer.save();
-    }
-  } else {
-    return res.status(400).json({ error: 'Customer info required.' });
-  }
-
-  // Save the pass
   try {
+    if (customerId) {
+      customer = await Customer.findById(customerId);
+      if (!customer) return res.status(404).json({ error: 'Customer not found.' });
+    } else if (customerName) {
+      customer = await Customer.findOne({ name: customerName });
+      if (!customer) {
+        customer = new Customer({ name: customerName });
+        await customer.save();
+      }
+    } else {
+      return res.status(400).json({ error: 'Customer info required (customerId or customerName).' });
+    }
+
+    // Create and save pass
     const pass = new Pass({
       type,
       startDate: passStartDate,
@@ -49,16 +48,21 @@ router.post('/', async (req, res) => {
       customer: customer._id,
     });
     await pass.save();
-    res.json(pass);
+    res.status(201).json(pass);
+
   } catch (err) {
-    res.status(500).json({ error: 'Failed to create pass.', details: err.message });
+    res.status(500).json({ error: 'Failed to create pass.', details: err?.message || err });
   }
 });
 
 // GET /api/passes
 router.get('/', async (req, res) => {
-  const passes = await Pass.find().populate('customer').exec();
-  res.json(passes);
+  try {
+    const passes = await Pass.find().populate('customer').exec();
+    res.json(passes);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch passes.', details: err?.message || err });
+  }
 });
 
 module.exports = router;
