@@ -28,7 +28,12 @@ export default function PassesPage() {
     const fetchPasses = async () => {
       try {
         const res = await axios.get('/api/passes');
-        setPasses(res.data.reverse());
+        // api/passes.js currently returns an array; defensive if shape changes
+        if (Array.isArray(res.data)) {
+          setPasses(res.data.reverse());
+        } else if (res.data && Array.isArray(res.data.data)) {
+          setPasses(res.data.data.reverse());
+        }
       } catch (err) {
         console.error('Error fetching passes:', err);
       }
@@ -41,7 +46,8 @@ export default function PassesPage() {
     if (customer.length > 1) {
       axios.get(`/api/customers?search=${encodeURIComponent(customer)}`)
         .then(res => {
-          setCustomerSuggestions(res.data || []);
+          const data = Array.isArray(res.data) ? res.data : (res.data && res.data.data) || [];
+          setCustomerSuggestions(data);
           setShowSuggestions(true);
         })
         .catch(() => setCustomerSuggestions([]));
@@ -67,7 +73,7 @@ export default function PassesPage() {
     const newErrors = {};
     if (!passType) newErrors.passType = "Pass Type is required.";
     if (!date) newErrors.date = "Date is required.";
-    if (!customer) newErrors.customer = "Customer name is required.";
+    if (!customer.trim()) newErrors.customer = "Customer name is required.";
     return newErrors;
   }
 
@@ -80,21 +86,31 @@ export default function PassesPage() {
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        // If customerId is set, use it. If not, create customer.
-        let finalCustomerId = customerId;
-        if (!finalCustomerId) {
-          // Attempt to create new customer
-          const customerRes = await axios.post('/api/customers', { name: customer });
-          finalCustomerId = customerRes.data.id || customerRes.data._id;
-        }
-        // Create pass
-        const res = await axios.post('/api/passes', {
+        // Build payload sending ONLY one of customerId OR customerName
+        const payload = {
           type: passType,
-          date,
-          customerId: finalCustomerId,
-          customerName: customer
-        });
-        setPasses([res.data, ...passes]);
+          date
+        };
+        if (customerId) {
+          payload.customerId = customerId; // existing user
+        } else {
+          payload.customerName = customer.trim(); // new user name
+        }
+
+        const res = await axios.post('/api/passes', payload);
+
+        // api/passes.js returns the pass object directly; Express style would be { success, data }
+        let created = res.data;
+        if (created && created.success && created.data) {
+          created = created.data;
+        }
+
+        // Fallback: if backend didn't attach customer but we have a name
+        if (!created.customer && payload.customerName) {
+          created.customer = { id: created.customerId, name: payload.customerName };
+        }
+
+        setPasses([created, ...passes]);
         setPassType("");
         setDate(new Date().toISOString().split("T")[0]);
         setCustomer("");
@@ -102,6 +118,7 @@ export default function PassesPage() {
         setSubmitted(true);
         setErrors({});
       } catch (err) {
+        console.error(err);
         setErrors({ api: 'Error creating pass.' });
       }
       setLoading(false);
@@ -154,7 +171,7 @@ export default function PassesPage() {
               value={customer}
               onChange={e => {
                 setCustomer(e.target.value);
-                setCustomerId(null);
+                setCustomerId(null); // typing invalidates prior selection
               }}
               autoComplete="off"
               required
@@ -198,7 +215,7 @@ export default function PassesPage() {
           </button>
           {submitted && (
             <div className="success-message">
-              Pass created for <strong>{PASS_TYPES.find(pt => pt.value === passType)?.label}</strong> on <strong>{date}</strong> for <strong>{customer}</strong>!
+              Pass created!
             </div>
           )}
           {errors.api && <div className="error">{errors.api}</div>}
@@ -224,8 +241,8 @@ export default function PassesPage() {
               passes.map((pass) => (
                 <tr key={pass.id || pass._id}>
                   <td>{pass.type}</td>
-                  <td>{pass.date}</td>
-                  <td>{pass.customerName ? pass.customerName : (pass.customer?.name || "-")}</td>
+                  <td>{pass.date || (pass.startDate ? pass.startDate.slice(0,10) : '')}</td>
+                  <td>{pass.customerName || pass.customer?.name || '-'}</td>
                   <td>{pass.createdAt ? new Date(pass.createdAt).toLocaleString() : '-'}</td>
                 </tr>
               ))
