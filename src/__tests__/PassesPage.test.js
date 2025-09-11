@@ -1,14 +1,15 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PassesPage from '../pages/PassesPage';
+import { api } from '../services/api';
 
-// Mock axios
-jest.mock('axios', () => ({
-  get: jest.fn(),
-  post: jest.fn()
+// Mock the API module
+jest.mock('../services/api', () => ({
+  api: {
+    getPasses: jest.fn(),
+    getCustomers: jest.fn(),
+    createPass: jest.fn()
+  }
 }));
-
-import axios from 'axios';
-const mockedAxios = axios;
 
 // Mock data
 const mockCustomers = [
@@ -29,7 +30,7 @@ const mockPasses = [
 
 describe('PassesPage', () => {
   beforeEach(() => {
-    mockedAxios.get.mockResolvedValue({ data: mockPasses });
+    api.getPasses.mockResolvedValue(mockPasses);
   });
 
   afterEach(() => {
@@ -39,8 +40,8 @@ describe('PassesPage', () => {
   test('renders pass creation form with customer field', async () => {
     render(<PassesPage />);
     
-    expect(screen.getByPlaceholderText('Pass Type')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Customer Name')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Pass Type/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Customer Name/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Pass' })).toBeInTheDocument();
   });
 
@@ -54,16 +55,16 @@ describe('PassesPage', () => {
   });
 
   test('shows customer suggestions when typing', async () => {
-    mockedAxios.get.mockResolvedValueOnce({ data: mockPasses })
-                   .mockResolvedValueOnce({ data: mockCustomers });
+    api.getPasses.mockResolvedValueOnce(mockPasses);
+    api.getCustomers.mockResolvedValueOnce(mockCustomers);
 
     render(<PassesPage />);
     
-    const customerInput = screen.getByPlaceholderText('Customer Name');
+    const customerInput = screen.getByLabelText(/Customer Name/i);
     fireEvent.change(customerInput, { target: { value: 'Jo' } });
     
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/customers?name_like=Jo');
+      expect(api.getCustomers).toHaveBeenCalledWith('Jo');
     });
   });
 });

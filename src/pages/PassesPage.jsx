@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import { api } from '../services/api';
 import '../App.css';
 
 const PASS_TYPES = [
@@ -27,13 +27,8 @@ export default function PassesPage() {
   useEffect(() => {
     const fetchPasses = async () => {
       try {
-        const res = await axios.get('/api/passes');
-        // api/passes.js currently returns an array; defensive if shape changes
-        if (Array.isArray(res.data)) {
-          setPasses(res.data.reverse());
-        } else if (res.data && Array.isArray(res.data.data)) {
-          setPasses(res.data.data.reverse());
-        }
+        const data = await api.getPasses();
+        setPasses(data.reverse());
       } catch (err) {
         console.error('Error fetching passes:', err);
       }
@@ -44,9 +39,8 @@ export default function PassesPage() {
   // Customer autocomplete
   useEffect(() => {
     if (customer.length > 1) {
-      axios.get(`/api/customers?search=${encodeURIComponent(customer)}`)
-        .then(res => {
-          const data = Array.isArray(res.data) ? res.data : (res.data && res.data.data) || [];
+      api.getCustomers(customer)
+        .then(data => {
           setCustomerSuggestions(data);
           setShowSuggestions(true);
         })
@@ -97,18 +91,7 @@ export default function PassesPage() {
           payload.customerName = customer.trim(); // new user name
         }
 
-        const res = await axios.post('/api/passes', payload);
-
-        // api/passes.js returns the pass object directly; Express style would be { success, data }
-        let created = res.data;
-        if (created && created.success && created.data) {
-          created = created.data;
-        }
-
-        // Fallback: if backend didn't attach customer but we have a name
-        if (!created.customer && payload.customerName) {
-          created.customer = { id: created.customerId, name: payload.customerName };
-        }
+        const created = await api.createPass(payload);
 
         setPasses([created, ...passes]);
         setPassType("");
@@ -133,8 +116,7 @@ export default function PassesPage() {
   };
 
   return (
-    <div className="App">
-      <h1>Eden Passes</h1>
+    <div>
       <section className="new-pass-section">
         <h2>Create New Pass</h2>
         <form className="new-pass-form" onSubmit={handleSubmit} autoComplete="off" noValidate>

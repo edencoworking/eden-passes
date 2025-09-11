@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '../services/api';
 import './Autocomplete.css';
 
 export default function PassesPage() {
@@ -11,13 +11,13 @@ export default function PassesPage() {
   const [form, setForm] = useState({ type: '', startDate: '', endDate: '' });
 
   useEffect(() => {
-    axios.get('/api/passes').then(res => setPasses(res.data));
+    api.getPasses().then(data => setPasses(data));
   }, []);
 
   useEffect(() => {
     if (customerSearch) {
-      axios.get('/api/customers?search=' + encodeURIComponent(customerSearch))
-        .then(res => setCustomerSuggestions(res.data));
+      api.getCustomers(customerSearch)
+        .then(data => setCustomerSuggestions(data));
     } else {
       setCustomerSuggestions([]);
     }
@@ -26,15 +26,16 @@ export default function PassesPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = {
-      ...form,
-      customerId: selectedCustomer ? selectedCustomer._id : undefined,
+      type: form.type,
+      date: form.startDate, // using startDate as the main date field
+      customerId: selectedCustomer ? selectedCustomer.id : undefined,
       customerName: !selectedCustomer ? customerSearch : undefined
     };
-    await axios.post('/api/passes', payload);
+    await api.createPass(payload);
     setForm({ type: '', startDate: '', endDate: '' });
     setCustomerSearch('');
     setSelectedCustomer(null);
-    axios.get('/api/passes').then(res => setPasses(res.data));
+    api.getPasses().then(data => setPasses(data));
   };
 
   return (
@@ -70,7 +71,7 @@ export default function PassesPage() {
             <ul className="suggestions">
               {customerSuggestions.map(c => (
                 <li
-                  key={c._id}
+                  key={c.id}
                   onClick={() => {
                     setSelectedCustomer(c);
                     setCustomerSuggestions([]);
@@ -97,9 +98,9 @@ export default function PassesPage() {
         </thead>
         <tbody>
           {passes.map(pass => (
-            <tr key={pass._id}>
+            <tr key={pass.id}>
               <td>{pass.type}</td>
-              <td>{pass.startDate && pass.startDate.slice(0, 10)}</td>
+              <td>{pass.date}</td>
               <td>{pass.endDate && pass.endDate.slice(0, 10)}</td>
               <td>{pass.customer ? pass.customer.name : ''}</td>
             </tr>
