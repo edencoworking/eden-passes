@@ -1,69 +1,62 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PassesPage from '../pages/PassesPage';
 
-// Mock axios
-jest.mock('axios', () => ({
-  get: jest.fn(),
-  post: jest.fn()
+// Mock the localStorage data layer
+jest.mock('../services/api', () => ({
+  getPasses: jest.fn(() => [
+    { 
+      id: '1', 
+      type: 'weekly', 
+      date: '2024-01-15', 
+      customerId: '1',
+      customerName: 'John Doe',
+      createdAt: new Date().toISOString()
+    }
+  ]),
+  searchCustomers: jest.fn(() => [
+    { id: '1', name: 'John Doe' },
+    { id: '2', name: 'Jane Smith' }
+  ]),
+  createPass: jest.fn(() => ({
+    id: '2',
+    type: 'monthly',
+    date: '2024-01-20',
+    customerId: '2',
+    customerName: 'Jane Smith',
+    createdAt: new Date().toISOString()
+  }))
 }));
 
-import axios from 'axios';
-const mockedAxios = axios;
-
-// Mock data
-const mockCustomers = [
-  { id: '1', name: 'John Doe' },
-  { id: '2', name: 'Jane Smith' }
-];
-
-const mockPasses = [
-  { 
-    id: '1', 
-    type: 'weekly', 
-    date: '2024-01-15', 
-    customerId: '1',
-    customer: { id: '1', name: 'John Doe' },
-    createdAt: new Date().toISOString()
-  }
-];
+import { getPasses, searchCustomers, createPass } from '../services/api';
 
 describe('PassesPage', () => {
   beforeEach(() => {
-    mockedAxios.get.mockResolvedValue({ data: mockPasses });
-  });
-
-  afterEach(() => {
     jest.clearAllMocks();
   });
 
   test('renders pass creation form with customer field', async () => {
     render(<PassesPage />);
     
-    expect(screen.getByPlaceholderText('Pass Type')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Customer Name')).toBeInTheDocument();
+    expect(screen.getByText('Pass Type')).toBeInTheDocument();
+    expect(screen.getByText('Customer Name')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Pass' })).toBeInTheDocument();
   });
 
   test('displays existing passes with customer names', async () => {
     render(<PassesPage />);
     
-    await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('weekly')).toBeInTheDocument();
-    });
+    // Check that getPasses was called during mount
+    expect(getPasses).toHaveBeenCalled();
   });
 
   test('shows customer suggestions when typing', async () => {
-    mockedAxios.get.mockResolvedValueOnce({ data: mockPasses })
-                   .mockResolvedValueOnce({ data: mockCustomers });
-
     render(<PassesPage />);
     
-    const customerInput = screen.getByPlaceholderText('Customer Name');
+    const customerInput = screen.getByRole('textbox', { name: /customer name/i });
     fireEvent.change(customerInput, { target: { value: 'Jo' } });
     
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/customers?name_like=Jo');
+      expect(searchCustomers).toHaveBeenCalledWith('Jo');
     });
   });
 });

@@ -1,43 +1,225 @@
-# Eden Passes (Frontend Only)
+# Eden Passes (Frontend-Only)
 
-As of version 1.2.0 the previous Express + MongoDB backend was removed. This repository now contains only the React frontend (and any lightweight serverless/Vercel-style endpoints that may live under `api/`). All legacy backend functionality (health/readiness endpoints, Mongo models, rate limiting, Joi validation, structured logging, graceful shutdown) has been retired.
+A React application for managing coworking passes and customers. As of version 1.2.0, this is a **frontend-only** application that uses localStorage for data persistence.
 
-## What Changed in 1.2.0
-- Removed Express server entrypoint (`app.js`).
-- Deleted backend directories: `routes/`, `models/`, `middlewares/`, `utils/` (Mongo state helper).
-- Pruned backend-only dependencies (express, mongoose, joi, helmet, dotenv, pino, express-rate-limit, cors, pino-http, etc.).
-- Bumped version to 1.2.0.
-- Simplified documentation to reflect a pure frontend application.
+## Architecture
+
+This application uses a pure frontend architecture with no backend dependencies:
+
+- **Frontend**: React 18 with Create React App
+- **Data Layer**: Browser localStorage for persistent data storage
+- **State Management**: React hooks and local component state
+- **Build Tool**: Create React App (no custom webpack configuration)
+
+### Data Layer (localStorage)
+
+The application uses two localStorage keys for data persistence:
+
+- `EDEN_PASSES`: Stores all pass records as JSON array
+- `EDEN_CUSTOMERS`: Stores all customer records as JSON array
+
+**Data Functions** (in `src/services/api.js`):
+- `getPasses()`: Retrieves passes sorted by creation date (newest first)
+- `getCustomers()`: Retrieves customers sorted alphabetically  
+- `searchCustomers(term)`: Client-side search filtering customers by name
+- `createPass({ type, date, customerId?, customerName? })`: Creates new pass and customer if needed
+
+### Key Features
+
+- ✅ **Persistent Data**: Passes and customers persist across browser sessions
+- ✅ **No Server Required**: Runs entirely in the browser
+- ✅ **Customer Autocomplete**: Real-time client-side search suggestions
+- ✅ **Deterministic Dates**: Pass dates default to today's date
+- ✅ **Automatic Seeding**: Demo customers created on first run
+- ✅ **Static Deployment**: Can be deployed to any static hosting service
 
 ## Getting Started
-Install dependencies:
+
+### Prerequisites
+- Node.js 16+ and npm
+
+### Installation
 ```bash
+# Clone the repository
+git clone https://github.com/edencoworking/eden-passes.git
+cd eden-passes
+
+# Install dependencies
 npm install
 ```
-Run the development server:
+
+### Development
 ```bash
+# Start development server
 npm start
+# Opens http://localhost:3000
 ```
-Build for production:
+
+### Production Build
 ```bash
+# Create production build
 npm run build
+
+# Serve locally to test
+npx serve -s build
 ```
-Run tests:
+
+### Testing
 ```bash
+# Run tests
 npm test
+
+# Run tests without watch mode
+npm test -- --watchAll=false
 ```
 
-## Environment Variables
-Backend-specific variables (PORT, MONGO_URI, RATE_LIMIT_*, LOG_LEVEL, etc.) are no longer used. If the frontend needs to call an external API, add variables prefixed with `REACT_APP_` (e.g. `REACT_APP_API_BASE`) in a local `.env` that you do not commit.
+## Usage
 
-## Future Integration
-// TODO: Integrate external API layer or SDK for passes & customers.
-// TODO: Replace any former direct backend assumptions with fetch/GraphQL calls.
+### Creating Passes
+1. Select a pass type (Hourly, 10-Hour, Weekly, Monthly)
+2. Choose a date (defaults to today)
+3. Enter customer name (autocomplete will suggest existing customers)
+4. Click "Create Pass"
 
-## Changelog (Excerpt)
-| Version | Date | Notes |
-|---------|------|-------|
-| 1.2.0 | 2025-09-11 | Backend removed; repository is frontend-only. |
-| 1.1.x | 2025 | Full-stack (React + Express/Mongo) implementation (now retired). |
+### Customer Management
+- **Existing Customers**: Type to see autocomplete suggestions
+- **New Customers**: Type a new name and the customer will be created automatically
+- **Customer Data**: Persists in localStorage between sessions
 
-Old backend logic can still be examined in Git history prior to tag v1.2.0.
+### Data Persistence
+- All data is stored in browser localStorage
+- Data persists between browser sessions
+- Clearing browser data will reset the application
+- No external database or server required
+
+## Deployment
+
+This application can be deployed to any static hosting service:
+
+### Vercel (Recommended)
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+```
+
+### Netlify
+```bash
+# Build the project
+npm run build
+
+# Deploy the build/ folder to Netlify
+```
+
+### GitHub Pages
+```bash
+# Install gh-pages
+npm install --save-dev gh-pages
+
+# Add to package.json scripts:
+# "deploy": "gh-pages -d build"
+
+# Deploy
+npm run deploy
+```
+
+## Development Notes
+
+### Environment Variables
+Since this is a frontend-only app, no backend environment variables are needed. If you need to configure external API endpoints in the future, use `REACT_APP_` prefixed variables in a `.env` file.
+
+### Adding External APIs
+To integrate with external services:
+
+1. Replace functions in `src/services/api.js` with actual API calls
+2. Add API endpoints using `fetch()` or a HTTP client library
+3. Configure CORS if needed on the external service
+4. Add API keys as `REACT_APP_` environment variables
+
+### Data Schema
+
+**Pass Object:**
+```javascript
+{
+  id: "uuid",
+  type: "hourly|10-hour|weekly|monthly", 
+  date: "YYYY-MM-DD",
+  customerId: "uuid",
+  customerName: "string",
+  createdAt: "ISO 8601 timestamp"
+}
+```
+
+**Customer Object:**
+```javascript
+{
+  id: "uuid",
+  name: "string"
+}
+```
+
+## Migration from 1.1.x
+
+**⚠️ Breaking Changes in 1.2.0:**
+
+### What Changed
+- Removed Express.js backend completely
+- Removed MongoDB database dependency  
+- Switched to localStorage for data persistence
+- Removed all HTTP API endpoints
+- Updated React components to use localStorage API
+
+### Migration Steps
+1. **Data Backup**: Export any important data from the previous version
+2. **Update**: Pull the latest 1.2.0 code
+3. **Install**: Run `npm install` (will remove backend dependencies)
+4. **Restart**: The app will start fresh with demo data
+5. **Import**: Manually recreate important passes/customers if needed
+
+### Lost Functionality
+- Multi-user support (localStorage is per-browser)
+- Server-side data validation
+- Centralized data storage
+- API endpoints for external integrations
+
+## Roadmap
+
+### Near Term (1.3.x)
+- [ ] Export/import functionality for data backup
+- [ ] Enhanced customer management (edit/delete)
+- [ ] Pass filtering and search capabilities
+- [ ] Basic reporting and analytics
+
+### Future Versions (2.x)
+- [ ] **Backend Integration**: Optional API layer for multi-user support
+- [ ] **Authentication**: User accounts and access control  
+- [ ] **Real Database**: PostgreSQL/MongoDB integration
+- [ ] **Multi-tenant**: Support for multiple coworking spaces
+- [ ] **API Integrations**: Payment processing, booking systems
+- [ ] **Mobile App**: React Native companion app
+
+### External API Candidates
+- **Firebase**: For real-time database and authentication
+- **Supabase**: Open-source Firebase alternative  
+- **GraphQL**: For flexible data queries
+- **REST APIs**: Traditional HTTP API integration
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make changes and test: `npm test`
+4. Build to verify: `npm run build`
+5. Commit: `git commit -m 'Add feature'`
+6. Push: `git push origin feature-name`
+7. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history.

@@ -1,10 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-// Mock axios to prevent API calls during testing
-jest.mock('axios', () => ({
-  get: jest.fn(() => Promise.resolve({ data: [] })),
-  post: jest.fn(() => Promise.resolve({ data: {} }))
+// Mock the localStorage data layer
+jest.mock('./services/api', () => ({
+  getPasses: jest.fn(() => []),
+  searchCustomers: jest.fn(() => []),
+  createPass: jest.fn(() => ({ id: 'test-id', type: 'test', date: '2024-01-01' }))
 }));
 
 test('renders Eden Passes heading', () => {
