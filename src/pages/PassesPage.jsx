@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import { getPasses, searchCustomers, createPass } from '../services/api';
 import '../App.css';
 
 const PASS_TYPES = [
@@ -25,15 +25,10 @@ export default function PassesPage() {
 
   // Fetch passes list
   useEffect(() => {
-    const fetchPasses = async () => {
+    const fetchPasses = () => {
       try {
-        const res = await axios.get('/api/passes');
-        // api/passes.js currently returns an array; defensive if shape changes
-        if (Array.isArray(res.data)) {
-          setPasses(res.data.reverse());
-        } else if (res.data && Array.isArray(res.data.data)) {
-          setPasses(res.data.data.reverse());
-        }
+        const passesData = getPasses();
+        setPasses(passesData);
       } catch (err) {
         console.error('Error fetching passes:', err);
       }
@@ -44,13 +39,14 @@ export default function PassesPage() {
   // Customer autocomplete
   useEffect(() => {
     if (customer.length > 1) {
-      axios.get(`/api/customers?search=${encodeURIComponent(customer)}`)
-        .then(res => {
-          const data = Array.isArray(res.data) ? res.data : (res.data && res.data.data) || [];
-          setCustomerSuggestions(data);
-          setShowSuggestions(true);
-        })
-        .catch(() => setCustomerSuggestions([]));
+      try {
+        const data = searchCustomers(customer);
+        setCustomerSuggestions(data);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error('Error searching customers:', err);
+        setCustomerSuggestions([]);
+      }
     } else {
       setCustomerSuggestions([]);
       setShowSuggestions(false);
@@ -97,20 +93,10 @@ export default function PassesPage() {
           payload.customerName = customer.trim(); // new user name
         }
 
-        const res = await axios.post('/api/passes', payload);
+        const created = createPass(payload);
 
-        // api/passes.js returns the pass object directly; Express style would be { success, data }
-        let created = res.data;
-        if (created && created.success && created.data) {
-          created = created.data;
-        }
-
-        // Fallback: if backend didn't attach customer but we have a name
-        if (!created.customer && payload.customerName) {
-          created.customer = { id: created.customerId, name: payload.customerName };
-        }
-
-        setPasses([created, ...passes]);
+        // Update local state by prepending the new pass
+        setPasses((prevPasses) => [created, ...(prevPasses || [])]);
         setPassType("");
         setDate(new Date().toISOString().split("T")[0]);
         setCustomer("");
@@ -119,7 +105,7 @@ export default function PassesPage() {
         setErrors({});
       } catch (err) {
         console.error(err);
-        setErrors({ api: 'Error creating pass.' });
+        setErrors({ api: err.message || 'Error creating pass.' });
       }
       setLoading(false);
     }
@@ -133,8 +119,7 @@ export default function PassesPage() {
   };
 
   return (
-    <div className="App">
-      <h1>Eden Passes</h1>
+    <div>
       <section className="new-pass-section">
         <h2>Create New Pass</h2>
         <form className="new-pass-form" onSubmit={handleSubmit} autoComplete="off" noValidate>
@@ -175,9 +160,9 @@ export default function PassesPage() {
               }}
               autoComplete="off"
               required
-              onFocus={() => customerSuggestions.length > 0 && setShowSuggestions(true)}
+              onFocus={() => (customerSuggestions || []).length > 0 && setShowSuggestions(true)}
             />
-            {showSuggestions && customerSuggestions.length > 0 && (
+            {showSuggestions && (customerSuggestions || []).length > 0 && (
               <ul className="autocomplete-suggestions" ref={suggestionsRef} style={{
                 position: 'absolute',
                 top: 'calc(100% + 2px)',
@@ -193,7 +178,7 @@ export default function PassesPage() {
                 maxHeight: '150px',
                 overflowY: 'auto'
               }}>
-                {customerSuggestions.map(suggestion => (
+                {(customerSuggestions || []).map(suggestion => (
                   <li
                     key={suggestion.id || suggestion._id}
                     style={{
@@ -233,12 +218,12 @@ export default function PassesPage() {
             </tr>
           </thead>
           <tbody>
-            {passes.length === 0 ? (
+            {(passes || []).length === 0 ? (
               <tr>
                 <td colSpan={4} style={{textAlign: "center", color: "#888"}}>No passes found.</td>
               </tr>
             ) : (
-              passes.map((pass) => (
+              (passes || []).map((pass) => (
                 <tr key={pass.id || pass._id}>
                   <td>{pass.type}</td>
                   <td>{pass.date || (pass.startDate ? pass.startDate.slice(0,10) : '')}</td>
