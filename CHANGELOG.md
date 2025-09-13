@@ -7,24 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-<!-- Add new changes here following the Keep a Changelog categories:
-### Added
-### Changed
-### Deprecated
-### Removed
+## [1.2.2] - 2025-09-13
 ### Fixed
-### Security
--->
+- Restored removed dependencies and removed invalid comment lines from package.json (broken JSON in 1.2.1).
 
 ## [1.2.1] - 2025-09-13
-
 ### Fixed
 - Removed legacy pass/customer field fallbacks (`_id`, `customer`, `startDate`) from PassesPage.
 - Added comprehensive localStorage-backed integration tests (no service mocks).
 - Improved empty state helper message for passes list.
 
 ## [1.2.0] - 2025-09-12
-
 ### Added
 - Frontend-only localStorage data layer for passes and customers
 - Client-side data persistence using localStorage keys (`EDEN_PASSES`, `EDEN_CUSTOMERS`)
@@ -59,6 +52,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - This change enables deployment to static hosting services like Vercel, Netlify, or GitHub Pages
 
 ## [1.1.x] - Previous versions
-
 Previous versions included a full Express.js backend with MongoDB integration.
 For historical reference, check git history prior to version 1.2.0.
