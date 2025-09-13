@@ -19,8 +19,9 @@ The application uses two localStorage keys for data persistence:
 - `EDEN_CUSTOMERS`: Stores all customer records as JSON array
 
 **Data Functions** (in `src/services/api.js`):
+
 - `getPasses()`: Retrieves passes sorted by creation date (newest first)
-- `getCustomers()`: Retrieves customers sorted alphabetically  
+- `getCustomers()`: Retrieves customers sorted alphabetically
 - `searchCustomers(term)`: Client-side search filtering customers by name
 - `createPass({ type, date, customerId?, customerName? })`: Creates new pass and customer if needed
 
@@ -36,9 +37,11 @@ The application uses two localStorage keys for data persistence:
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 16+ and npm
 
 ### Installation
+
 ```bash
 # Clone the repository
 git clone https://github.com/edencoworking/eden-passes.git
@@ -49,6 +52,7 @@ npm install
 ```
 
 ### Development
+
 ```bash
 # Start development server
 npm start
@@ -56,6 +60,7 @@ npm start
 ```
 
 ### Production Build
+
 ```bash
 # Create production build
 npm run build
@@ -65,6 +70,7 @@ npx serve -s build
 ```
 
 ### Testing
+
 ```bash
 # Run tests
 npm test
@@ -76,17 +82,20 @@ npm test -- --watchAll=false
 ## Usage
 
 ### Creating Passes
+
 1. Select a pass type (Hourly, 10-Hour, Weekly, Monthly)
 2. Choose a date (defaults to today)
 3. Enter customer name (autocomplete will suggest existing customers)
 4. Click "Create Pass"
 
 ### Customer Management
+
 - **Existing Customers**: Type to see autocomplete suggestions
 - **New Customers**: Type a new name and the customer will be created automatically
 - **Customer Data**: Persists in localStorage between sessions
 
 ### Data Persistence
+
 - All data is stored in browser localStorage
 - Data persists between browser sessions
 - Clearing browser data will reset the application
@@ -97,6 +106,7 @@ npm test -- --watchAll=false
 This application can be deployed to any static hosting service:
 
 ### Vercel (Recommended)
+
 ```bash
 # Install Vercel CLI
 npm i -g vercel
@@ -106,6 +116,7 @@ vercel --prod
 ```
 
 ### Netlify
+
 ```bash
 # Build the project
 npm run build
@@ -114,6 +125,7 @@ npm run build
 ```
 
 ### GitHub Pages
+
 ```bash
 # Install gh-pages
 npm install --save-dev gh-pages
@@ -128,9 +140,11 @@ npm run deploy
 ## Development Notes
 
 ### Environment Variables
+
 Since this is a frontend-only app, no backend environment variables are needed. If you need to configure external API endpoints in the future, use `REACT_APP_` prefixed variables in a `.env` file.
 
 ### Adding External APIs
+
 To integrate with external services:
 
 1. Replace functions in `src/services/api.js` with actual API calls
@@ -141,10 +155,11 @@ To integrate with external services:
 ### Data Schema
 
 **Pass Object:**
+
 ```javascript
 {
   id: "uuid",
-  type: "hourly|10-hour|weekly|monthly", 
+  type: "hourly|10-hour|weekly|monthly",
   date: "YYYY-MM-DD",
   customerId: "uuid",
   customerName: "string",
@@ -153,6 +168,7 @@ To integrate with external services:
 ```
 
 **Customer Object:**
+
 ```javascript
 {
   id: "uuid",
@@ -165,13 +181,15 @@ To integrate with external services:
 **⚠️ Breaking Changes in 1.2.0:**
 
 ### What Changed
+
 - Removed Express.js backend completely
-- Removed MongoDB database dependency  
+- Removed MongoDB database dependency
 - Switched to localStorage for data persistence
 - Removed all HTTP API endpoints
 - Updated React components to use localStorage API
 
 ### Migration Steps
+
 1. **Data Backup**: Export any important data from the previous version
 2. **Update**: Pull the latest 1.2.0 code
 3. **Install**: Run `npm install` (will remove backend dependencies)
@@ -179,6 +197,7 @@ To integrate with external services:
 5. **Import**: Manually recreate important passes/customers if needed
 
 ### Lost Functionality
+
 - Multi-user support (localStorage is per-browser)
 - Server-side data validation
 - Centralized data storage
@@ -187,22 +206,25 @@ To integrate with external services:
 ## Roadmap
 
 ### Near Term (1.3.x)
+
 - [ ] Export/import functionality for data backup
 - [ ] Enhanced customer management (edit/delete)
 - [ ] Pass filtering and search capabilities
 - [ ] Basic reporting and analytics
 
 ### Future Versions (2.x)
+
 - [ ] **Backend Integration**: Optional API layer for multi-user support
-- [ ] **Authentication**: User accounts and access control  
+- [ ] **Authentication**: User accounts and access control
 - [ ] **Real Database**: PostgreSQL/MongoDB integration
 - [ ] **Multi-tenant**: Support for multiple coworking spaces
 - [ ] **API Integrations**: Payment processing, booking systems
 - [ ] **Mobile App**: React Native companion app
 
 ### External API Candidates
+
 - **Firebase**: For real-time database and authentication
-- **Supabase**: Open-source Firebase alternative  
+- **Supabase**: Open-source Firebase alternative
 - **GraphQL**: For flexible data queries
 - **REST APIs**: Traditional HTTP API integration
 

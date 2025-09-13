@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { getPasses, searchCustomers, createPass } from '../services/api';
-import '../App.css';
+import React, { useEffect, useState, useRef } from "react";
+import { getPasses, searchCustomers, createPass } from "../services/api";
+import "../App.css";
 
 /**
  * NOTE:
@@ -22,7 +22,9 @@ const PASS_TYPES = [
 export default function PassesPage() {
   const [passes, setPasses] = useState([]);
   const [passType, setPassType] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState(
+    () => new Date().toISOString().split("T")[0],
+  );
   const [customer, setCustomer] = useState("");
   const [customerId, setCustomerId] = useState(null);
   const [customerSuggestions, setCustomerSuggestions] = useState([]);
@@ -38,7 +40,7 @@ export default function PassesPage() {
       const passesData = getPasses();
       setPasses(passesData);
     } catch (err) {
-      console.error('Error fetching passes:', err);
+      console.error("Error fetching passes:", err);
     }
   }, []);
 
@@ -50,7 +52,7 @@ export default function PassesPage() {
         setCustomerSuggestions(data);
         setShowSuggestions(true);
       } catch (err) {
-        console.error('Error searching customers:', err);
+        console.error("Error searching customers:", err);
         setCustomerSuggestions([]);
       }
     } else {
@@ -62,12 +64,15 @@ export default function PassesPage() {
   // Hide suggestions when clicking outside the suggestions list
   useEffect(() => {
     function handleClick(e) {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target)) {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(e.target)
+      ) {
         setShowSuggestions(false);
       }
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
   function validate() {
@@ -97,7 +102,7 @@ export default function PassesPage() {
         const created = createPass(payload);
 
         // Prepend new pass to local state (service already persisted it)
-        setPasses(prev => [created, ...(prev || [])]);
+        setPasses((prev) => [created, ...(prev || [])]);
 
         // Reset form
         setPassType("");
@@ -108,7 +113,7 @@ export default function PassesPage() {
         setErrors({});
       } catch (err) {
         console.error(err);
-        setErrors({ api: err.message || 'Error creating pass.' });
+        setErrors({ api: err.message || "Error creating pass." });
       }
       setLoading(false);
     }
@@ -131,73 +136,84 @@ export default function PassesPage() {
           noValidate
         >
           <div className="form-group">
-            <label htmlFor="passType">Pass Type<span className="required">*</span></label>
+            <label htmlFor="passType">
+              Pass Type<span className="required">*</span>
+            </label>
             <select
               id="passType"
               value={passType}
-              onChange={e => setPassType(e.target.value)}
+              onChange={(e) => setPassType(e.target.value)}
               required
             >
-              {PASS_TYPES.map(type => (
-                <option key={type.value} value={type.value}>{type.label}</option>
+              {PASS_TYPES.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
               ))}
             </select>
             {errors.passType && <div className="error">{errors.passType}</div>}
           </div>
 
           <div className="form-group">
-            <label htmlFor="date">Date<span className="required">*</span></label>
+            <label htmlFor="date">
+              Date<span className="required">*</span>
+            </label>
             <input
               id="date"
               type="date"
               value={date}
-              onChange={e => setDate(e.target.value)}
+              onChange={(e) => setDate(e.target.value)}
               required
             />
             {errors.date && <div className="error">{errors.date}</div>}
           </div>
 
-            <div className="form-group" style={{ position: "relative" }}>
-            <label htmlFor="customer">Customer Name<span className="required">*</span></label>
+          <div className="form-group" style={{ position: "relative" }}>
+            <label htmlFor="customer">
+              Customer Name<span className="required">*</span>
+            </label>
             <input
               id="customer"
               type="text"
               value={customer}
-              onChange={e => {
+              onChange={(e) => {
                 setCustomer(e.target.value);
                 setCustomerId(null); // any typing invalidates prior selection
               }}
               autoComplete="off"
               required
-              onFocus={() => (customerSuggestions || []).length > 0 && setShowSuggestions(true)}
+              onFocus={() =>
+                (customerSuggestions || []).length > 0 &&
+                setShowSuggestions(true)
+              }
             />
             {showSuggestions && (customerSuggestions || []).length > 0 && (
               <ul
                 className="autocomplete-suggestions"
                 ref={suggestionsRef}
                 style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 2px)',
+                  position: "absolute",
+                  top: "calc(100% + 2px)",
                   left: 0,
                   right: 0,
                   zIndex: 10,
-                  background: 'white',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  listStyle: 'none',
+                  background: "white",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  listStyle: "none",
                   margin: 0,
                   padding: 0,
-                  maxHeight: '150px',
-                  overflowY: 'auto'
+                  maxHeight: "150px",
+                  overflowY: "auto",
                 }}
               >
-                {(customerSuggestions || []).map(suggestion => (
+                {(customerSuggestions || []).map((suggestion) => (
                   <li
                     key={suggestion.id}
                     style={{
-                      padding: '8px',
-                      cursor: 'pointer',
-                      borderBottom: '1px solid #eee'
+                      padding: "8px",
+                      cursor: "pointer",
+                      borderBottom: "1px solid #eee",
                     }}
                     onMouseDown={() => handleSuggestionClick(suggestion)}
                   >
@@ -210,13 +226,9 @@ export default function PassesPage() {
           </div>
 
           <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Pass'}
+            {loading ? "Creating..." : "Create Pass"}
           </button>
-          {submitted && (
-            <div className="success-message">
-              Pass created!
-            </div>
-          )}
+          {submitted && <div className="success-message">Pass created!</div>}
           {errors.api && <div className="error">{errors.api}</div>}
         </form>
       </section>
@@ -231,7 +243,7 @@ export default function PassesPage() {
             marginTop: "20px",
             background: "#fff",
             borderRadius: "8px",
-            boxShadow: "0 1px 8px rgba(0,0,0,0.04)"
+            boxShadow: "0 1px 8px rgba(0,0,0,0.04)",
           }}
         >
           <thead>
@@ -250,12 +262,16 @@ export default function PassesPage() {
                 </td>
               </tr>
             ) : (
-              (passes || []).map(pass => (
+              (passes || []).map((pass) => (
                 <tr key={pass.id}>
                   <td>{pass.type}</td>
                   <td>{pass.date}</td>
-                  <td>{pass.customerName || '-'}</td>
-                  <td>{pass.createdAt ? new Date(pass.createdAt).toLocaleString() : '-'}</td>
+                  <td>{pass.customerName || "-"}</td>
+                  <td>
+                    {pass.createdAt
+                      ? new Date(pass.createdAt).toLocaleString()
+                      : "-"}
+                  </td>
                 </tr>
               ))
             )}

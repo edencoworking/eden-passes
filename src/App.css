@@ -9,7 +9,7 @@ body {
   padding: 16px;
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .new-pass-section {
@@ -17,7 +17,7 @@ body {
   padding: 16px;
   background: #f9f9f9;
   border-radius: 6px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
 }
 
 .new-pass-form .form-group {
@@ -137,7 +137,7 @@ body {
   max-height: 200px;
   overflow-y: auto;
   z-index: 1000;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .suggestion-item {
