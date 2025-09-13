@@ -2,6 +2,15 @@ import React, { useEffect, useState, useRef } from 'react';
 import { getPasses, searchCustomers, createPass } from '../services/api';
 import '../App.css';
 
+/**
+ * NOTE:
+ * This component now relies exclusively on the localStorage-backed
+ * data layer in src/services/api.js. It intentionally avoids any legacy
+ * backend field fallbacks (e.g. _id, customer object, startDate).
+ * Canonical pass shape:
+ * { id, type, date, customerId, customerName, createdAt }
+ */
+
 const PASS_TYPES = [
   { value: "", label: "Select Pass Type" },
   { value: "hourly", label: "Hourly" },
@@ -23,20 +32,17 @@ export default function PassesPage() {
   const [submitted, setSubmitted] = useState(false);
   const suggestionsRef = useRef();
 
-  // Fetch passes list
+  // Initial load: read passes from localStorage via service layer (sorted newest first)
   useEffect(() => {
-    const fetchPasses = () => {
-      try {
-        const passesData = getPasses();
-        setPasses(passesData);
-      } catch (err) {
-        console.error('Error fetching passes:', err);
-      }
-    };
-    fetchPasses();
+    try {
+      const passesData = getPasses();
+      setPasses(passesData);
+    } catch (err) {
+      console.error('Error fetching passes:', err);
+    }
   }, []);
 
-  // Customer autocomplete
+  // Customer autocomplete (substring, case-insensitive)
   useEffect(() => {
     if (customer.length > 1) {
       try {
@@ -53,7 +59,7 @@ export default function PassesPage() {
     }
   }, [customer]);
 
-  // Hide suggestions when clicking outside
+  // Hide suggestions when clicking outside the suggestions list
   useEffect(() => {
     function handleClick(e) {
       if (suggestionsRef.current && !suggestionsRef.current.contains(e.target)) {
@@ -64,7 +70,6 @@ export default function PassesPage() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  // Validation
   function validate() {
     const newErrors = {};
     if (!passType) newErrors.passType = "Pass Type is required.";
@@ -73,8 +78,7 @@ export default function PassesPage() {
     return newErrors;
   }
 
-  // Handle form submit
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = validate();
     setErrors(newErrors);
@@ -82,21 +86,20 @@ export default function PassesPage() {
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        // Build payload sending ONLY one of customerId OR customerName
-        const payload = {
-          type: passType,
-          date
-        };
+        // Build payload with either existing customerId OR new customerName
+        const payload = { type: passType, date };
         if (customerId) {
-          payload.customerId = customerId; // existing user
+          payload.customerId = customerId;
         } else {
-          payload.customerName = customer.trim(); // new user name
+          payload.customerName = customer.trim();
         }
 
         const created = createPass(payload);
 
-        // Update local state by prepending the new pass
-        setPasses((prevPasses) => [created, ...(prevPasses || [])]);
+        // Prepend new pass to local state (service already persisted it)
+        setPasses(prev => [created, ...(prev || [])]);
+
+        // Reset form
         setPassType("");
         setDate(new Date().toISOString().split("T")[0]);
         setCustomer("");
@@ -111,10 +114,9 @@ export default function PassesPage() {
     }
   };
 
-  // Handle customer suggestion selection
   const handleSuggestionClick = (suggestion) => {
     setCustomer(suggestion.name);
-    setCustomerId(suggestion.id || suggestion._id);
+    setCustomerId(suggestion.id); // canonical id field
     setShowSuggestions(false);
   };
 
@@ -122,7 +124,12 @@ export default function PassesPage() {
     <div>
       <section className="new-pass-section">
         <h2>Create New Pass</h2>
-        <form className="new-pass-form" onSubmit={handleSubmit} autoComplete="off" noValidate>
+        <form
+          className="new-pass-form"
+          onSubmit={handleSubmit}
+          autoComplete="off"
+          noValidate
+        >
           <div className="form-group">
             <label htmlFor="passType">Pass Type<span className="required">*</span></label>
             <select
@@ -137,6 +144,7 @@ export default function PassesPage() {
             </select>
             {errors.passType && <div className="error">{errors.passType}</div>}
           </div>
+
           <div className="form-group">
             <label htmlFor="date">Date<span className="required">*</span></label>
             <input
@@ -148,7 +156,8 @@ export default function PassesPage() {
             />
             {errors.date && <div className="error">{errors.date}</div>}
           </div>
-          <div className="form-group" style={{position: "relative"}}>
+
+            <div className="form-group" style={{ position: "relative" }}>
             <label htmlFor="customer">Customer Name<span className="required">*</span></label>
             <input
               id="customer"
@@ -156,31 +165,35 @@ export default function PassesPage() {
               value={customer}
               onChange={e => {
                 setCustomer(e.target.value);
-                setCustomerId(null); // typing invalidates prior selection
+                setCustomerId(null); // any typing invalidates prior selection
               }}
               autoComplete="off"
               required
               onFocus={() => (customerSuggestions || []).length > 0 && setShowSuggestions(true)}
             />
             {showSuggestions && (customerSuggestions || []).length > 0 && (
-              <ul className="autocomplete-suggestions" ref={suggestionsRef} style={{
-                position: 'absolute',
-                top: 'calc(100% + 2px)',
-                left: 0,
-                right: 0,
-                zIndex: 10,
-                background: 'white',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                listStyle: 'none',
-                margin: 0,
-                padding: 0,
-                maxHeight: '150px',
-                overflowY: 'auto'
-              }}>
+              <ul
+                className="autocomplete-suggestions"
+                ref={suggestionsRef}
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 2px)',
+                  left: 0,
+                  right: 0,
+                  zIndex: 10,
+                  background: 'white',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  listStyle: 'none',
+                  margin: 0,
+                  padding: 0,
+                  maxHeight: '150px',
+                  overflowY: 'auto'
+                }}
+              >
                 {(customerSuggestions || []).map(suggestion => (
                   <li
-                    key={suggestion.id || suggestion._id}
+                    key={suggestion.id}
                     style={{
                       padding: '8px',
                       cursor: 'pointer',
@@ -195,6 +208,7 @@ export default function PassesPage() {
             )}
             {errors.customer && <div className="error">{errors.customer}</div>}
           </div>
+
           <button type="submit" className="submit-btn" disabled={loading}>
             {loading ? 'Creating...' : 'Create Pass'}
           </button>
@@ -206,11 +220,22 @@ export default function PassesPage() {
           {errors.api && <div className="error">{errors.api}</div>}
         </form>
       </section>
+
       <section className="pass-list-section">
         <h3>All Passes</h3>
-        <table border="0" cellPadding="8" style={{width: "100%", marginTop: "20px", background: "#fff", borderRadius: "8px", boxShadow: "0 1px 8px rgba(0,0,0,0.04)"}}>
+        <table
+          border="0"
+          cellPadding="8"
+          style={{
+            width: "100%",
+            marginTop: "20px",
+            background: "#fff",
+            borderRadius: "8px",
+            boxShadow: "0 1px 8px rgba(0,0,0,0.04)"
+          }}
+        >
           <thead>
-            <tr style={{background: "#f9f9f9"}}>
+            <tr style={{ background: "#f9f9f9" }}>
               <th>Type</th>
               <th>Date</th>
               <th>Customer</th>
@@ -220,14 +245,16 @@ export default function PassesPage() {
           <tbody>
             {(passes || []).length === 0 ? (
               <tr>
-                <td colSpan={4} style={{textAlign: "center", color: "#888"}}>No passes found.</td>
+                <td colSpan={4} style={{ textAlign: "center", color: "#888" }}>
+                  No passes yet. Create one above.
+                </td>
               </tr>
             ) : (
-              (passes || []).map((pass) => (
-                <tr key={pass.id || pass._id}>
+              (passes || []).map(pass => (
+                <tr key={pass.id}>
                   <td>{pass.type}</td>
-                  <td>{pass.date || (pass.startDate ? pass.startDate.slice(0,10) : '')}</td>
-                  <td>{pass.customerName || pass.customer?.name || '-'}</td>
+                  <td>{pass.date}</td>
+                  <td>{pass.customerName || '-'}</td>
                   <td>{pass.createdAt ? new Date(pass.createdAt).toLocaleString() : '-'}</td>
                 </tr>
               ))
