@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.3] - 2025-09-13
+### Added
+- SPA routing configuration for Vercel via `vercel.json` (serves `index.html` for all non-file paths).
+
+### Fixed
+- Added missing `uuid` dependency required by localStorage data layer (fixes build failure: "Can't resolve 'uuid'").
+
 ## [1.2.2] - 2025-09-13
 ### Fixed
 - Restored removed dependencies and removed invalid comment lines from package.json (broken JSON in 1.2.1).
