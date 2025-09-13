@@ -1,6 +1,6 @@
 {
   "name": "eden-passes",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "private": true,
   "description": "Frontend-only React application for managing coworking passes and customers (mock localStorage data).",
   "scripts": {
@@ -17,6 +17,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
+    "uuid": "^9.0.1",
     "web-vitals": "^3.5.0"
   },
   "devDependencies": {
@@ -25,5 +26,17 @@
     "eslint-plugin-react": "^7.34.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "prettier": "^3.3.3"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

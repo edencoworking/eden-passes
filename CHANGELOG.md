@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.3] - 2025-09-13
+### Fixed
+- Added missing `uuid` dependency required by localStorage data layer (fixes Vercel build failure).
+
+### Added
+- vercel.json SPA routing configuration for proper client-side routing support.
+- .nvmrc specifying Node 18 for consistent local/Vercel builds.
+
 ## [1.2.2] - 2025-09-13
 ### Fixed
 - Restored removed dependencies and removed invalid comment lines from package.json (broken JSON in 1.2.1).
