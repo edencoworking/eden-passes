@@ -23,7 +23,8 @@ export default function PassesPage() {
   const [submitted, setSubmitted] = useState(false);
   const suggestionsRef = useRef();
 
-  // Fetch passes list
+  // Fetch passes list from localStorage on component mount
+  // The getPasses() service automatically returns newest passes first
   useEffect(() => {
     const fetchPasses = () => {
       try {
@@ -36,7 +37,8 @@ export default function PassesPage() {
     fetchPasses();
   }, []);
 
-  // Customer autocomplete
+  // Customer autocomplete using localStorage data
+  // When customer input has >1 characters, search existing customers
   useEffect(() => {
     if (customer.length > 1) {
       try {
@@ -83,6 +85,8 @@ export default function PassesPage() {
       setLoading(true);
       try {
         // Build payload sending ONLY one of customerId OR customerName
+        // If customerId exists (user selected from suggestions), use existing customer
+        // Otherwise, createPass will create a new customer with the entered name
         const payload = {
           type: passType,
           date
@@ -93,6 +97,7 @@ export default function PassesPage() {
           payload.customerName = customer.trim(); // new user name
         }
 
+        // createPass handles localStorage persistence for both customers and passes
         const created = createPass(payload);
 
         // Update local state by prepending the new pass
@@ -114,7 +119,7 @@ export default function PassesPage() {
   // Handle customer suggestion selection
   const handleSuggestionClick = (suggestion) => {
     setCustomer(suggestion.name);
-    setCustomerId(suggestion.id || suggestion._id);
+    setCustomerId(suggestion.id);
     setShowSuggestions(false);
   };
 
@@ -180,7 +185,7 @@ export default function PassesPage() {
               }}>
                 {(customerSuggestions || []).map(suggestion => (
                   <li
-                    key={suggestion.id || suggestion._id}
+                    key={suggestion.id}
                     style={{
                       padding: '8px',
                       cursor: 'pointer',
@@ -220,14 +225,16 @@ export default function PassesPage() {
           <tbody>
             {(passes || []).length === 0 ? (
               <tr>
-                <td colSpan={4} style={{textAlign: "center", color: "#888"}}>No passes found.</td>
+                <td colSpan={4} style={{textAlign: "center", color: "#888", padding: "20px"}}>
+                  No passes yet. Create one above.
+                </td>
               </tr>
             ) : (
               (passes || []).map((pass) => (
-                <tr key={pass.id || pass._id}>
+                <tr key={pass.id}>
                   <td>{pass.type}</td>
-                  <td>{pass.date || (pass.startDate ? pass.startDate.slice(0,10) : '')}</td>
-                  <td>{pass.customerName || pass.customer?.name || '-'}</td>
+                  <td>{pass.date}</td>
+                  <td>{pass.customerName || ''}</td>
                   <td>{pass.createdAt ? new Date(pass.createdAt).toLocaleString() : '-'}</td>
                 </tr>
               ))
