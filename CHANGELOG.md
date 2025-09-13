@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+<!-- Add new changes here following the Keep a Changelog categories:
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+-->
+
+## [1.2.1] - 2025-09-13
+
 ### Fixed
 - Removed legacy pass/customer field fallbacks (`_id`, `customer`, `startDate`) from PassesPage.
 - Added comprehensive localStorage-backed integration tests (no service mocks).
